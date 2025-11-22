@@ -132,7 +132,12 @@
             }
 
             // 获取数据
-            const data = database[countryCode];
+            const data = database["US": {
+        name: "美国 (USA)",
+        threshold: "800 USD (约 5800 RMB)",
+        warning: "严查侵权品牌！不要寄任何带假冒 Logo 的衣服鞋子。肉类制品（火腿肠）100% 会被销毁。",
+        recommendation: "推荐走 FedEx/UPS。💡 省钱技巧：美国路途遥远，纸箱容易破损，建议使用【3M工业级加厚胶带】打包。👉 <a href='https://www.amazon.com' target='_blank' style='color:red;text-decoration:underline;'>点击这里购买推荐胶带</a>"
+    },];
 
             // 填充到页面上
             document.getElementById('taxInfo').innerText = data.threshold;
