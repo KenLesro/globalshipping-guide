@@ -1,39 +1,145 @@
-const customsData = [
-  {
-    country: "美国 (USA)",
-    threshold: "800 USD (约 5,800 CNY)",
-    forbidden_items: "肉类制品（包括含肉调料包）、Kinder出奇蛋、含锂电池产品（需UN38.3认证，极易扣关）、处方药、任何侵权/仿牌产品。",
-    recommendation: "首选 FedEx 或 UPS。DHL在美国偏远地区投递能力稍弱。美国海关目前正在严查 'Section 321' 免税申报，勿存侥幸心理。",
-    warning: "⚠️ 绝对不要低报货值！2025年CBP对'小额豁免'滥用的打击是毁灭性的，一旦被查，发货人会被列入黑名单。"
-  },
-  {
-    country: "日本 (Japan)",
-    threshold: "10,000 JPY (约 65 USD)",
-    forbidden_items: "所有肉类（无论生熟/真空，包括含肉方便面）、假冒品牌（海关会直接没收并罚款）、色情制品（打码需符合日本标准）、精神类药物（如含安非他命的感冒药）。",
-    recommendation: "首选 DHL 或 OCS（佐川急便）。日本海关极度严谨，EMS虽然查验率相对低，但一旦卡关处理极慢。商业件务必走DHL。",
-    warning: "⚠️ 别寄火腿肠或牛肉干！日本农林水产省对肉类零容忍，这是最常见的退运原因。"
-  },
-  {
-    country: "泰国 (Thailand)",
-    threshold: "1,500 THB (约 43 USD)",
-    forbidden_items: "电子烟及配件（最高级违禁品，携带或进口均违法）、成人玩具（性用品）、部分含有佛像的工艺品（需文化部批文）。",
-    recommendation: "小件普货建议走 EMS 或 专线。DHL/FedEx 在泰国属于'主动报关'，几乎 100% 会被征税（且税率极高）。",
-    warning: "⚠️ 千万别发电子烟！在泰国这属于严厉打击的犯罪行为，不仅是没收，收件人可能面临牢狱之灾。"
-  },
-  {
-    country: "英国 (UK)",
-    threshold: "135 GBP (约 170 USD) - 注意：此为关税起征点，VAT无起征点",
-    forbidden_items: "攻击性武器（如僵尸刀、指虎）、所有肉奶制品（脱欧后严查）、含有特定成分的植物种子。",
-    recommendation: "首选 DHL 或 Royal Mail (EMS)。英国脱欧后，所有商品入关即需缴纳 20% VAT（增值税），建议卖家注册 IOSS 预缴税，否则客户拒收率极高。",
-    warning: "⚠️ 必须预缴 VAT！不要以为货值低就没事，现在 £0.01 起征增值税，未完税包裹会被直接退回或向客户收取高额手续费。"
-  },
-  {
-    country: "德国 (Germany)",
-    threshold: "150 EUR (约 158 USD) - 注意：此为关税起征点，VAT无起征点",
-    forbidden_items: "褪黑素（及多种膳食补充剂，被视为药物）、仿牌（德国海关最严）、月饼（含蛋黄/肉）、非欧盟合规的电子产品（无CE标）。",
-    recommendation: "强烈推荐 DHL Express。**千万别用 EMS/邮政**，因为德国海关（Zoll）不负责清关邮政包裹，会要求收件人亲自去海关排队开箱，体验极差。",
-    warning: "⚠️ 别寄保健品和药！德国海关对个人进口药物（包括维生素、褪黑素）查得严到变态，退运率高达 90%。"
-  }
-];
+/**
+ * Global Logistics Database
+ * Version: 6.0 Unified
+ * Updated: 2025-11-22
+ */
 
-export default customsData;
+const LOGISTICS_DATA = {
+    // --- 欧美澳 (基础数据) ---
+    "US": {
+        name: "🇺🇸 USA (美国)",
+        currency: "USD",
+        exchangeRateUSD: 1,
+        customs: { thresholdDesc: "800 USD (高免税)", note: "全球最宽松，但严查仿牌。", deMinimisUSD: 800 },
+        taxRules: { vatRate: 0, dutyRateGeneral: 0, dutyRateHigh: 0 },
+        codProfile: "低风险。地址系统完善。",
+        compliance: "食品需 FDA 申报；严查侵权 Logo。",
+        prohibited: ["Fake Brands (仿牌)", "Meat Products (肉类)", "Kinder Surprise Eggs"],
+        channels: ["FedEx IP (首选)", "UPS", "USPS"]
+    },
+    "GB": {
+        name: "🇬🇧 UK (英国)",
+        currency: "GBP",
+        exchangeRateUSD: 0.79,
+        customs: { thresholdDesc: "135 GBP (VAT起征)", note: "取消小额免税，必收 20% VAT。", deMinimisUSD: 0 },
+        taxRules: { vatRate: 0.20, dutyRateGeneral: 0.02, dutyRateHigh: 0.10 },
+        codProfile: "低风险。",
+        compliance: "必须提供收件人税号 (EORI/VAT)。",
+        prohibited: ["Knives (管制刀具)", "Dairy Products"],
+        channels: ["FedEx IE", "Royal Mail"]
+    },
+    "EU": {
+        name: "🇪🇺 EU (欧盟通用)",
+        currency: "EUR",
+        exchangeRateUSD: 0.95,
+        customs: { thresholdDesc: "0 EUR (全额征税)", note: "必须提供 IOSS 编码，否则二次征税。", deMinimisUSD: 0 },
+        taxRules: { vatRate: 0.21, dutyRateGeneral: 0.05, dutyRateHigh: 0.12 },
+        codProfile: "中低风险。",
+        compliance: "IOSS 是关键；CE 认证。",
+        prohibited: ["Medicine (私人药品)", "Counterfeits"],
+        channels: ["DHL", "FedEx", "DDP Lines"]
+    },
+    "CA": {
+        name: "🇨🇦 Canada (加拿大)",
+        currency: "CAD",
+        exchangeRateUSD: 1.40,
+        customs: { thresholdDesc: "20 CAD (极低)", note: "几乎每单必税，建议预缴。", deMinimisUSD: 15 },
+        taxRules: { vatRate: 0.13, dutyRateGeneral: 0.05, dutyRateHigh: 0.18 },
+        codProfile: "低风险。",
+        compliance: "保健品限寄 90 天用量。",
+        prohibited: ["Baby Walkers", "Mace (防狼喷雾)"],
+        channels: ["UPS", "FedEx", "Canada Post"]
+    },
+    "AU": {
+        name: "🇦🇺 Australia (澳洲)",
+        currency: "AUD",
+        exchangeRateUSD: 1.54,
+        customs: { thresholdDesc: "1000 AUD", note: "1000澳元内免税 (GST除外)。", deMinimisUSD: 650 },
+        taxRules: { vatRate: 0.10, dutyRateGeneral: 0.05, dutyRateHigh: 0.05 },
+        codProfile: "低风险。",
+        compliance: "生物安全世界第一严！木箱需熏蒸。",
+        prohibited: ["Seeds/Soil (种子土壤)", "Straw Products"],
+        channels: ["FedEx (快)", "AusPost"]
+    },
+    "JP": {
+        name: "🇯🇵 Japan (日本)",
+        currency: "JPY",
+        exchangeRateUSD: 154,
+        customs: { thresholdDesc: "10000 JPY", note: "折合 65 USD 左右免税。", deMinimisUSD: 65 },
+        taxRules: { vatRate: 0.10, dutyRateGeneral: 0.0, dutyRateHigh: 0.10 },
+        codProfile: "极低风险。但拒收率低。",
+        compliance: "私人件限 24 个化妆品；严禁肉类。",
+        prohibited: ["Meat", "Perfume (Flammable)"],
+        channels: ["EMS (推荐)", "Sagawa", "FedEx"]
+    },
+    "TH": {
+        name: "🇹🇭 Thailand (泰国)",
+        currency: "THB",
+        exchangeRateUSD: 34.5,
+        customs: { thresholdDesc: "1500 THB", note: "电子烟绝对禁止。", deMinimisUSD: 43 },
+        taxRules: { vatRate: 0.07, dutyRateGeneral: 0.10, dutyRateHigh: 0.30 },
+        codProfile: "中等风险。",
+        compliance: "佛牌/古董出口需艺术厅审批。",
+        prohibited: ["E-Cigarettes (电子烟 - 严禁)", "Sex Toys", "Buddha Heads (without permit)"],
+        channels: ["Special Line", "Kerry Express"]
+    },
+
+    // --- 东南亚 & 中东 (深度数据) ---
+    "VN": {
+        name: "🇻🇳 Vietnam (越南)",
+        currency: "VND",
+        exchangeRateUSD: 25450,
+        customs: { thresholdDesc: "0 VND (2025新规)", note: "2025年2月起取消小额免税。", deMinimisUSD: 0 },
+        taxRules: { vatRate: 0.10, dutyRateGeneral: 0.00, dutyRateSpecial: 0.25 },
+        codProfile: "高拒收率 (15%)。建议提供“开箱验货”。",
+        compliance: "旧衣服严禁进口。",
+        prohibited: ["Used Goods (二手货)", "Cultural Products"],
+        channels: ["Land Freight (陆运)", "J&T Express"]
+    },
+    "MY": {
+        name: "🇲🇾 Malaysia (马来西亚)",
+        currency: "MYR",
+        exchangeRateUSD: 4.45,
+        customs: { thresholdDesc: "500 MYR", note: "<500 MYR 收 10% LVG 税。", deMinimisUSD: 112 },
+        taxRules: { vatRate: 0.10, dutyRateGeneral: 0.00, dutyRateHigh: 0.15 },
+        codProfile: "东马时效慢。",
+        compliance: "电子产品需 SIRIM。",
+        prohibited: ["Religious Texts", "Daggers"],
+        channels: ["J&T", "Shopee Xpress"]
+    },
+    "ID": {
+        name: "🇮🇩 Indonesia (印尼)",
+        currency: "IDR",
+        exchangeRateUSD: 15850,
+        customs: { thresholdDesc: "3 USD (极低)", note: ">3 USD 即收 11% VAT。", deMinimisUSD: 3 },
+        taxRules: { vatRate: 0.11, dutyRateGeneral: 0.075, dutyRateTextile: 0.25 },
+        codProfile: "极高风险。群岛派送难。",
+        compliance: "必须有税号 (NPWP)；手机需注册 IMEI。",
+        prohibited: ["Used Clothing (二手衣)", "Chinese Medicine"],
+        channels: ["DDP Special Line (专线)"]
+    },
+    "SA": {
+        name: "🇸🇦 Saudi Arabia (沙特)",
+        currency: "SAR",
+        exchangeRateUSD: 3.75,
+        customs: { thresholdDesc: "1000 SAR", note: "15% VAT 无免征额。", deMinimisUSD: 266 },
+        taxRules: { vatRate: 0.15, dutyRateGeneral: 0.05, dutyRateHigh: 0.20 },
+        codProfile: "地址不清，依赖电话。",
+        compliance: "SABER 认证；Made in China 刻印。",
+        prohibited: ["Alcohol/Pork", "Laser Pointers"],
+        channels: ["Aramex", "SMSA"]
+    },
+    "AE": {
+        name: "🇦🇪 UAE (阿联酋)",
+        currency: "AED",
+        exchangeRateUSD: 3.67,
+        customs: { thresholdDesc: "300 AED", note: "5% VAT 普遍征收。", deMinimisUSD: 81 },
+        taxRules: { vatRate: 0.05, dutyRateGeneral: 0.05, dutyRateHigh: 0.05 },
+        codProfile: "流动性大。",
+        compliance: "电子产品需 ESMA。",
+        prohibited: ["Poppy Seeds", "Gambling Tools"],
+        channels: ["iMile", "Aramex"]
+    }
+};
+
+const CATEGORIES = ["General Goods (普货)", "Textile/Fashion (纺织鞋包)", "Electronics (电子)", "Cosmetics (化妆品)"];
