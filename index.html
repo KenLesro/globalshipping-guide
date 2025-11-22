@@ -3,14 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>全球跨境物流避坑指南 | Global Shipping Guide</title>
+    <title>全球跨境物流避坑指南 v2.0 | FedEx Employee Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         body { background-color: #f5f5f7; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         .card { transition: all 0.3s ease; }
         .card:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-        /* 让链接有点颜色 */
         a { color: #dc2626; text-decoration: underline; font-weight: bold; }
+        /* 增加一点加载动画 */
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="text-gray-800 flex flex-col min-h-screen">
@@ -18,105 +21,146 @@
     <nav class="bg-white shadow-sm sticky top-0 z-50">
         <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
             <h1 class="text-xl font-bold text-blue-600 tracking-tight">📦 Global Shipping Guide</h1>
-            <span class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-500">FedEx 员工内部版</span>
+            <span class="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded border border-blue-100 font-medium">Pro v2.0</span>
         </div>
     </nav>
 
     <main class="flex-grow px-4 py-10">
         <div class="max-w-2xl mx-auto">
             
-            <div class="text-center mb-10">
-                <h2 class="text-3xl font-bold mb-3">跨境发货，拒绝踩坑。</h2>
-                <p class="text-gray-500">查询各国海关最新免税额度、违禁品及物流建议</p>
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold mb-2">跨境物流避坑助手</h2>
+                <p class="text-gray-500 text-sm">FedEx 内部实战数据 | 拒绝清关延误</p>
             </div>
 
             <div class="bg-white p-6 rounded-2xl shadow-lg card border border-gray-100">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">目的国家 (Destination)</label>
-                        <select id="countrySelect" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">请选择国家...</option>
-                        </select>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">目的国家 (Destination)</label>
+                        <div class="relative">
+                            <select id="countrySelect" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">请选择国家...</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-500">▼</div>
+                        </div>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">物品类型 (Category)</label>
-                        <select id="categorySelect" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="general">普通货物</option>
-                            <option value="electronics">电子产品</option>
-                            <option value="food">食品/药品</option>
-                            <option value="luxury">奢侈品/佛牌</option>
-                        </select>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">物品类型 (Category)</label>
+                        <div class="relative">
+                            <select id="categorySelect" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="general">📦 普通货物 (General)</option>
+                                <option value="electronics">🔋 电子产品/电池 (Electronics)</option>
+                                <option value="food">🥩 食品/药品 (Food/Drug)</option>
+                                <option value="luxury">💍 奢侈品/佛牌 (Luxury/Religious)</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-500">▼</div>
+                        </div>
                     </div>
                 </div>
                 
-                <button onclick="searchInfo()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition duration-200">
-                    开始查询
+                <button onclick="searchInfo()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition duration-200 shadow-md flex justify-center items-center gap-2">
+                    <i class="fas fa-search"></i> 立即查询
                 </button>
             </div>
 
-            <div id="resultArea" class="hidden mt-8 space-y-4">
+            <div id="resultArea" class="hidden mt-6 space-y-4 fade-in">
                 
-                <div class="bg-white p-6 rounded-2xl shadow border-l-4 border-green-500">
-                    <h3 class="text-lg font-bold mb-2 flex items-center">
-                        💰 关税起征点 (Tax Threshold)
-                    </h3>
-                    <p id="taxInfo" class="text-gray-600 text-lg">--</p>
+                <div class="flex justify-end">
+                    <button onclick="copyResult()" class="text-sm text-gray-500 hover:text-blue-600 flex items-center gap-1 transition">
+                        <i class="far fa-copy"></i> 复制结果发给客户
+                    </button>
                 </div>
 
-                <div class="bg-white p-6 rounded-2xl shadow border-l-4 border-red-500">
-                    <h3 class="text-lg font-bold mb-2 flex items-center text-red-600">
-                        ⚠️ 高危避坑 (Warning)
-                    </h3>
-                    <p id="warningInfo" class="text-gray-700 font-medium">--</p>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border-l-4 border-green-500 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-money-bill-wave fa-3x text-green-500"></i></div>
+                    <h3 class="text-sm font-bold text-gray-400 uppercase mb-1">关税起征点 (Threshold)</h3>
+                    <p id="taxInfo" class="text-gray-800 text-lg font-bold">--</p>
                 </div>
 
-                <div class="bg-white p-6 rounded-2xl shadow border-l-4 border-blue-500">
-                    <h3 class="text-lg font-bold mb-2 flex items-center text-blue-600">
-                        🚀 推荐物流 (Recommendation)
-                    </h3>
-                    <p id="shippingInfo" class="text-gray-600">--</p>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border-l-4 border-red-500 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-exclamation-triangle fa-3x text-red-500"></i></div>
+                    <h3 class="text-sm font-bold text-gray-400 uppercase mb-1">高危避坑警告 (Warning)</h3>
+                    <p id="warningInfo" class="text-gray-800 font-medium">--</p>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl shadow-sm border-l-4 border-blue-500 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-shipping-fast fa-3x text-blue-500"></i></div>
+                    <h3 class="text-sm font-bold text-gray-400 uppercase mb-1">FedEx 员工建议 (Strategy)</h3>
+                    <p id="shippingInfo" class="text-gray-600 leading-relaxed">--</p>
                 </div>
 
             </div>
         </div>
     </main>
 
-    <footer class="text-center py-6 text-gray-400 text-sm">
-        <p>© 2025 Global Shipping Guide. Built with AI.</p>
+    <footer class="text-center py-8 text-gray-400 text-xs">
+        <p>© 2025 Global Shipping Guide. 数据仅供参考，请以官方海关条例为准。</p>
     </footer>
 
     <script>
-        // 1. 数据中心 (Data Warehouse)
+        // --- 1. 核心数据库 (已扩充) ---
         const database = {
             "US": {
-                name: "美国 (USA)",
+                name: "🇺🇸 美国 (USA)",
                 threshold: "800 USD (约 5800 RMB)",
-                warning: "严查侵权品牌！不要寄任何带假冒 Logo 的衣服鞋子。肉类制品（火腿肠）100% 会被销毁。",
-                // 下面这一行就是你的赚钱链接，已经帮你放好了
-                recommendation: "推荐走 FedEx/UPS。💡 省钱技巧：美国路途遥远，纸箱容易破损，建议使用【3M工业级加厚胶带】打包。👉 <a href='https://www.amazon.com' target='_blank'>点击这里购买推荐胶带</a>"
+                baseWarning: "严查侵权品牌！Fake 品牌Logo衣服鞋子必被扣。肉类制品（含火腿肠/蛋黄）100% 销毁。",
+                recommendation: "推荐走 FedEx IP (优先) 或 UPS。普货800刀内免税。💡 省钱技巧：美国长途运输易破损，建议使用【3M工业加厚胶带】加固。👉 <a href='https://www.amazon.com' target='_blank'>[点击购买推荐耗材]</a>"
+            },
+            "GB": {
+                name: "🇬🇧 英国 (UK)",
+                threshold: "135 GBP (约 1200 RMB)",
+                baseWarning: "取消了低价值免税额！所有商业包裹必须申报 VAT。低申报是重灾区，海关严查电子产品低报。",
+                recommendation: "必须提供收件人税号。建议走 FedEx IE (经济) 性价比高。"
+            },
+            "CA": {
+                name: "🇨🇦 加拿大 (Canada)",
+                threshold: "20 CAD (约 100 RMB) - 极低！",
+                baseWarning: "关税门槛极低，几乎每单必税！保健品（维生素）每次只能寄 90 天用量。",
+                recommendation: "提前告知客户会产生关税。建议走 DDP (完税后交货) 渠道，避免客户拒收。"
+            },
+            "AU": {
+                name: "🇦🇺 澳大利亚 (Australia)",
+                threshold: "1000 AUD (约 4700 RMB)",
+                baseWarning: "对木制品、植物种子、土壤查得世界第一严！寄木箱必须有熏蒸证明，否则整票退回。",
+                recommendation: "清关相对宽松（除了生物制品）。FedEx 时效极快，通常 3 天到悉尼。"
+            },
+            "SG": {
+                name: "🇸🇬 新加坡 (Singapore)",
+                threshold: "400 SGD (约 2100 RMB)",
+                baseWarning: "口香糖绝对禁止！香烟绝对禁止！酒类税率极高。",
+                recommendation: "东南亚首选 FedEx IP。OCBC 卡友注意：寄支票建议用文件袋单独封装。"
             },
             "TH": {
-                name: "泰国 (Thailand)",
-                threshold: "1500 THB (约 300 RMB) - 极低！",
-                warning: "电子烟是绝对违禁品，携带或邮寄可能面临高额罚款甚至监禁！佛牌出口需审批，建议走专门的文玩通道。",
-                recommendation: "建议走包税专线。EMS 被税概率极高，DHL/FedEx 主动报关必税。",
+                name: "🇹🇭 泰国 (Thailand)",
+                threshold: "1500 THB (约 300 RMB)",
+                baseWarning: "电子烟绝对禁止（即使是自用）！佛牌文物出口需要艺术厅审批。",
+                recommendation: "包税专线是王道。商业快递 (FedEx/DHL) 100% 会被征税。"
             },
             "JP": {
-                name: "日本 (Japan)",
+                name: "🇯🇵 日本 (Japan)",
                 threshold: "10000 JPY (约 470 RMB)",
-                warning: "严格禁止肉类、未检疫的植物种子。仿牌查得很严。香水、指甲油属于易燃品，很难寄。",
-                recommendation: "EMS (万国邮政) 清关最容易，被税概率相对低。商业快递必税。",
+                baseWarning: "私人件限制严格：一次只能寄 24 个化妆品。肉类、假货零容忍。",
+                recommendation: "日本海关对商业快递查验率高，EMS 有时有奇效。"
             },
             "EU": {
-                name: "欧盟通用 (Germany/France/etc)",
-                threshold: "0 EUR (2021年7月起取消免税额，全额征税)",
-                warning: "必须提供 IOSS 编码，否则会在目的地被二次征收高额手续费+增值税。低申报是大忌。",
-                recommendation: "必须走带 IOSS 预缴税的专线，或者 DHL (做好交税准备)。",
+                name: "🇪🇺 欧盟 (EU General)",
+                threshold: "0 EUR (全额征税)",
+                baseWarning: "必须提供 IOSS 编码。没有 IOSS 会在当地收取高额手续费。",
+                recommendation: "发货前务必确认收件人配合交税意愿。"
             }
         };
 
-        // 2. 初始化下拉菜单
+        // --- 2. 特殊类别警告逻辑 (Category Logic) ---
+        const categoryRules = {
+            "electronics": "【🔋 电子产品警告】：必须张贴 UN3481/UN3480 锂电池标签！必须确认功率小于 100Wh，否则需要按危险品申报（DG）。",
+            "food": "【🥩 食品警告】：绝大多数国家禁止私人邮寄肉类、奶制品。美国需 FDA 申报，欧洲需成分表。",
+            "luxury": "【💍 贵重品警告】：请务必购买运输保险！泰国佛牌/古董可能需要当地文物局的出口批文，否则会被扣留。",
+            "general": "" // 普通货物无附加警告
+        };
+
+        // --- 3. 初始化 ---
         const countrySelect = document.getElementById('countrySelect');
+        // 按拼音/字母简单的排序并不重要，这里直接遍历
         for (let code in database) {
             let option = document.createElement('option');
             option.value = code;
@@ -124,9 +168,10 @@
             countrySelect.appendChild(option);
         }
 
-        // 3. 核心查询逻辑 (Machinery)
+        // --- 4. 智能查询函数 ---
         function searchInfo() {
             const countryCode = document.getElementById('countrySelect').value;
+            const category = document.getElementById('categorySelect').value;
             const resultArea = document.getElementById('resultArea');
 
             if (!countryCode) {
@@ -134,18 +179,39 @@
                 return;
             }
 
-            // 获取数据 (这里是你之前粘贴错的地方，我已经修好了)
             const data = database[countryCode];
-
-            // 填充到页面上
-            document.getElementById('taxInfo').innerText = data.threshold;
-            document.getElementById('warningInfo').innerText = data.warning;
             
-            // 关键修改：用 innerHTML 才能显示可点击的链接
+            // 组合警告信息：基础国家警告 + 物品特殊警告
+            let finalWarning = data.baseWarning;
+            if (categoryRules[category]) {
+                finalWarning += "<br><br>" + categoryRules[category];
+            }
+
+            // 渲染数据
+            document.getElementById('taxInfo').innerText = data.threshold;
+            // 使用 innerHTML 以便支持换行标签 <br>
+            document.getElementById('warningInfo').innerHTML = finalWarning;
             document.getElementById('shippingInfo').innerHTML = data.recommendation;
 
-            // 显示结果
+            // 显示区域
             resultArea.classList.remove('hidden');
+        }
+
+        // --- 5. 复制结果功能 (Pro Feature) ---
+        function copyResult() {
+            const countryName = database[document.getElementById('countrySelect').value].name;
+            const threshold = document.getElementById('taxInfo').innerText;
+            // 去除 HTML 标签获取纯文本
+            const warning = document.getElementById('warningInfo').innerText;
+            const strategy = document.getElementById('shippingInfo').innerText;
+
+            const textToCopy = `【FedEx 员工物流查询助手】\n📍 目的国：${countryName}\n💰 免税额度：${threshold}\n⚠️ 避坑警告：${warning}\n🚀 发货建议：${strategy}\n\n(查询结果仅供参考)`;
+
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                alert("✅ 已复制！可直接粘贴发给客户。");
+            }).catch(err => {
+                alert("❌ 复制失败，请手动复制。");
+            });
         }
     </script>
 </body>
